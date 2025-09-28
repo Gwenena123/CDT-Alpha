@@ -1,12 +1,95 @@
 ---
-- hosts: linux
+- name: Setup Linux servers
+  hosts: linux
+  gather_facts: yes #For logging and functionality whatnot
   roles:
     - sys_update
+    - linux_deploy
+  tags:
+    - linux
+    - base
 
-- hosts: blog
+- name: Configure SMTP (Linux)
+  hosts: smtp
+  roles: 
+    - linux_deploy_smtp
+  tags:
+    - linux
+    - smtp
+
+- name: Configure WordPress server
+  hosts: blog
   roles:
     - install_wordpress
+  tags:
+    - linux
+    - blog
 
-- hosts: database
+- name: Configure mysql (Linux)
+  hosts: database
   roles:
     - install_mysql
+  tags:
+    - linux
+    - mysql
+
+- name: Deploy ftp (Linux)
+  hosts: ftp
+  become: yes
+  vars:
+    ftp_port: 21
+    anonymous_root: /srv/ftp/pub
+    local_users: 
+      - { username: "admin", password: "admin123" }
+      - { username: "user", password: "password123" }
+      - { username: "ftpadmin", password: "Ftp@2024" }
+    weak_password_users:
+      - { username: "test", password: "test" }
+      - { username: "guest", password: "guest" }
+  roles:
+    - linux_ftp
+  tags:
+    - linux
+    - ftp
+
+- name: Configure ssh (Linux)
+  hosts: ssh
+  roles:
+    - linux_deploy_ssh
+  tags:
+    - linux
+    - ssh
+
+- name: Set up Domain Controller (Windows)
+  hosts: dc
+  roles:
+    - win_deploy_dc
+  tags:
+    - windows
+    - dc
+
+- name: Join memebers to domain
+  hosts: rdp,smb
+  roles:
+    - win_join_domain
+  tags:
+    - windows
+    - domain_members
+
+- name: Configure SMB (Windows)
+  hosts: smb
+  roles:
+    - win_smb
+  tags:
+    - windows
+    - smb
+    - domain_members
+
+- name: Configure RDP server
+  hosts: rdp
+  roles:
+    - win_rdp
+  tags:
+    - windows
+    - rdp
+    - domain_members

@@ -1,9 +1,21 @@
+- name: Set database hostname
+  ansible.builtin.hostname:
+    name: "database"
+  become: true
+
 - name: Install MySQL
   ansible.builtin.apt:
     name:
       - mysql-server
       - python3-pymysql
       - mysql-client
+  become: true
+
+- name: Ensure MySQL is running and enabled
+  ansible.builtin.service:
+    name: mysql
+    state: started
+    enabled: yes
   become: true
 
 # Delete existing mysqld.cnf file
